@@ -1,0 +1,29 @@
+FROM devkitpro/devkitppc:20180522
+
+# Install devkitARM. Needed to build mocha.
+ENV DEVKITARM=${DEVKITPRO}/devkitARM
+COPY --from=devkitpro/devkitarm:20180522 $DEVKITARM $DEVKITARM
+
+RUN wget --no-check-certificate https://snapshot.debian.org/archive/debian/20160913T102156Z/pool/main/v/vim/xxd_8.0.0003-1_amd64.deb
+RUN dpkg -i xxd_8.0.0003-1_amd64.deb
+
+RUN wget --no-check-certificate https://snapshot.debian.org/archive/debian/20160306T224515Z/pool/main/p/p7zip/p7zip_15.09%2Bdfsg-3_amd64.deb
+RUN dpkg -i p7zip_15.09+dfsg-3_amd64.deb
+
+RUN wget --no-check-certificate https://snapshot.debian.org/archive/debian/20160306T224515Z/pool/main/p/p7zip/p7zip-full_15.09%2Bdfsg-3_amd64.deb
+RUN dpkg -i p7zip-full_15.09+dfsg-3_amd64.deb
+
+RUN wget https://github.com/Maschell/dynamic_libs/raw/lib/libs/portlibs.zip
+RUN 7za x -r portlibs.zip -o${DEVKITPRO}
+
+RUN git clone https://github.com/Maschell/libfat && cd libfat && git checkout v1.1.3a
+
+RUN git clone https://github.com/dimok789/libiosuhax && cd libiosuhax && git checkout v0.3
+
+WORKDIR libiosuhax
+RUN make && make install
+
+WORKDIR /libfat
+RUN make wiiu-release && make -C wiiu install
+
+WORKDIR /project
